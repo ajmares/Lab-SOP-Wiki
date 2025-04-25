@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View SOP</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: background-color 0.2s;
+        }
+        .back-button:hover {
+            background: #0056b3;
+        }
+        h1 {
+            color: #333;
+            margin: 0 0 20px 0;
+        }
+        .content {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            color: #444;
+        }
+        .metadata {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back to List</a>
+        <h1 id="sopTitle"></h1>
+        <div class="metadata" id="sopMetadata"></div>
+        <div class="content" id="sopContent"></div>
+    </div>
+
+    <script>
+        // Load and display the current SOP
+        const sop = JSON.parse(localStorage.getItem('currentSOP'));
+        if (sop) {
+            document.title = `SOP: ${sop.title}`;
+            document.getElementById('sopTitle').textContent = sop.title;
+            document.getElementById('sopMetadata').textContent = `Created: ${new Date(sop.date).toLocaleString()}`;
+            document.getElementById('sopContent').textContent = sop.content;
+        } else {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html> 

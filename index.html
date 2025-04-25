@@ -7,49 +7,66 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
             line-height: 1.6;
         }
         .container {
-            background: white;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .search-section {
             padding: 20px;
+            background: #f8f9fa;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        input, textarea {
+        .search-input {
             width: 100%;
-            padding: 8px;
-            margin: 5px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
             box-sizing: border-box;
         }
-        button {
+        .add-button {
+            display: block;
+            width: 200px;
+            padding: 15px 30px;
             background: #007bff;
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 10px 0;
+            text-decoration: none;
+            text-align: center;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 20px auto;
+            transition: background-color 0.2s;
         }
-        button:hover {
+        .add-button:hover {
             background: #0056b3;
         }
-        .sop-item {
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 4px;
-            background: #f8f9fa;
+        .sop-list {
+            margin-top: 20px;
         }
-        .search-box {
-            margin: 20px 0;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 4px;
+        .sop-item {
+            padding: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .sop-item:hover {
+            transform: translateX(5px);
+            border-color: #007bff;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
         }
     </style>
 </head>
@@ -57,40 +74,22 @@
     <div class="container">
         <h1>SOP Manager</h1>
         
-        <!-- Add SOP Form -->
-        <div>
-            <h2>Add New SOP</h2>
-            <input type="text" id="title" placeholder="SOP Title" required>
-            <textarea id="content" placeholder="SOP Content" rows="6" required></textarea>
-            <button onclick="saveSOP()">Save SOP</button>
+        <div class="search-section">
+            <input type="text" 
+                   class="search-input" 
+                   id="searchInput" 
+                   placeholder="Search SOPs by title..." 
+                   oninput="searchSOPs()">
         </div>
 
-        <!-- Search Box -->
-        <div class="search-box">
-            <h2>Search SOPs</h2>
-            <input type="text" id="searchInput" placeholder="Search by title..." oninput="searchSOPs()">
-        </div>
+        <a href="add.html" class="add-button">Add New SOP</a>
 
-        <!-- SOPs List -->
-        <div id="sopsList"></div>
+        <div id="sopsList" class="sop-list"></div>
     </div>
 
     <script>
         // Load SOPs from localStorage
         let sops = JSON.parse(localStorage.getItem('sops') || '[]');
-
-        function saveSOP() {
-            const title = document.getElementById('title').value.trim();
-            const content = document.getElementById('content').value.trim();
-            
-            if (title && content) {
-                sops.push({ title, content, date: new Date().toISOString() });
-                localStorage.setItem('sops', JSON.stringify(sops));
-                document.getElementById('title').value = '';
-                document.getElementById('content').value = '';
-                displaySOPs(sops);
-            }
-        }
 
         function searchSOPs() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
@@ -103,17 +102,21 @@
         function displaySOPs(sopsToShow) {
             const list = document.getElementById('sopsList');
             if (sopsToShow.length === 0) {
-                list.innerHTML = '<p>No SOPs found.</p>';
+                list.innerHTML = '<p style="text-align: center; color: #666;">No SOPs found</p>';
                 return;
             }
 
             list.innerHTML = sopsToShow.map(sop => `
-                <div class="sop-item">
+                <div class="sop-item" onclick="viewSOP(${JSON.stringify(sop).replace(/"/g, '&quot;')})">
                     <h3>${sop.title}</h3>
-                    <p style="white-space: pre-wrap;">${sop.content}</p>
                     <small>Created: ${new Date(sop.date).toLocaleString()}</small>
                 </div>
             `).join('');
+        }
+
+        function viewSOP(sop) {
+            localStorage.setItem('currentSOP', JSON.stringify(sop));
+            window.location.href = 'view.html';
         }
 
         // Initial display
