@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Welcome to SOP Manager</h1>
+<p>Choose an action:</p>
+<a href="{{ url_for('add_sop') }}" class="button">Add New SOP</a>
+<a href="{{ url_for('search') }}" class="button">Search SOPs</a>
+{% endblock %} 
