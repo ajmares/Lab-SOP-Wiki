@@ -56,12 +56,31 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             margin-bottom: 10px;
-            cursor: pointer;
             transition: transform 0.1s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .sop-item:hover {
-            transform: translateX(5px);
             border-color: #007bff;
+        }
+        .sop-content {
+            cursor: pointer;
+            flex-grow: 1;
+            padding-right: 20px;
+        }
+        .delete-button {
+            padding: 8px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+        .delete-button:hover {
+            background: #c82333;
         }
         h1 {
             text-align: center;
@@ -107,11 +126,30 @@
             }
 
             list.innerHTML = sopsToShow.map(sop => `
-                <div class="sop-item" onclick="viewSOP(${JSON.stringify(sop).replace(/"/g, '&quot;')})">
-                    <h3>${sop.title}</h3>
-                    <small>Created: ${new Date(sop.date).toLocaleString()} | Author: ${sop.author || 'Unknown'}</small>
+                <div class="sop-item">
+                    <div class="sop-content" onclick="viewSOP(${JSON.stringify(sop).replace(/"/g, '&quot;')})">
+                        <h3>${sop.title}</h3>
+                        <small>Created: ${new Date(sop.date).toLocaleString()} | Author: ${sop.author || 'Unknown'}</small>
+                    </div>
+                    <button class="delete-button" onclick="deleteSOP(${JSON.stringify(sop.date).replace(/"/g, '&quot;')})">Delete</button>
                 </div>
             `).join('');
+        }
+
+        function deleteSOP(sopDate) {
+            if (confirm('Are you sure you want to delete this SOP?')) {
+                // Get all SOPs
+                let sops = JSON.parse(localStorage.getItem('sops') || '[]');
+                
+                // Remove the SOP with matching date
+                sops = sops.filter(sop => sop.date !== sopDate);
+                
+                // Save back to localStorage
+                localStorage.setItem('sops', JSON.stringify(sops));
+                
+                // Refresh the display
+                displaySOPs(sops);
+            }
         }
 
         function viewSOP(sop) {
