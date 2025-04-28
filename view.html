@@ -62,7 +62,8 @@
         if (sop) {
             document.title = `SOP: ${sop.title}`;
             document.getElementById('sopTitle').textContent = sop.title;
-            document.getElementById('sopMetadata').textContent = `Created: ${new Date(sop.date).toLocaleString()}`;
+            document.getElementById('sopMetadata').textContent = 
+                `Created: ${new Date(sop.date).toLocaleString()} | Author: ${sop.author || 'Unknown'}`;
             document.getElementById('sopContent').textContent = sop.content;
         } else {
             window.location.href = 'index.html';

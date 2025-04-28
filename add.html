@@ -82,6 +82,12 @@
                placeholder="Enter SOP Title..."
                required>
         
+        <input type="text"
+               class="title-input"
+               id="author"
+               placeholder="Enter your name..."
+               required>
+        
         <textarea class="content-area" 
                   id="content" 
                   placeholder="Enter SOP content here..."
@@ -97,9 +103,10 @@
         function saveSOP() {
             const title = document.getElementById('title').value.trim();
             const content = document.getElementById('content').value.trim();
+            const author = document.getElementById('author').value.trim();
             
-            if (!title || !content) {
-                alert('Please fill in both title and content');
+            if (!title || !content || !author) {
+                alert('Please fill in all fields');
                 return;
             }
 
@@ -110,6 +117,7 @@
             sops.push({
                 title,
                 content,
+                author,
                 date: new Date().toISOString()
             });
             
