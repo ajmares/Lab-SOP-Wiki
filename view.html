@@ -54,6 +54,10 @@
             padding: 10px;
             border-radius: 4px;
             background: #fff;
+            outline: none;
+        }
+        .editable img {
+            cursor: move;
         }
         h1 {
             color: #333;
@@ -64,6 +68,15 @@
             line-height: 1.6;
             color: #444;
             margin-bottom: 40px;
+            min-height: 200px;
+            padding: 15px;
+        }
+        .content img {
+            max-width: 100%;
+            height: auto;
+            cursor: default;
+            display: block;
+            margin: 10px 0;
         }
         .metadata {
             color: #666;
@@ -120,7 +133,7 @@
         </div>
         <h1 id="sopTitle"></h1>
         <div class="metadata" id="sopMetadata"></div>
-        <div class="content" id="sopContent"></div>
+        <div class="content" id="sopContent" contenteditable="false"></div>
         
         <div class="comments-section">
             <h2>Comments</h2>
@@ -171,7 +184,7 @@
 
         function saveChanges() {
             const newTitle = document.getElementById('sopTitle').textContent;
-            const newContent = document.getElementById('sopContent').textContent;
+            const newContent = document.getElementById('sopContent').innerHTML;
             
             currentSOP.title = newTitle;
             currentSOP.content = newContent;
@@ -304,6 +317,33 @@
             }
         }
 
+        // Handle image paste in edit mode
+        document.getElementById('sopContent').addEventListener('paste', function(e) {
+            if (!isEditing) return;
+            
+            e.preventDefault();
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            
+            for (const item of items) {
+                if (item.type.indexOf('image') === 0) {
+                    const blob = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.style.maxWidth = '100%';
+                        e.target.appendChild(img);
+                        makeImageDraggable(img);
+                    };
+                    reader.readAsDataURL(blob);
+                } else if (item.type === 'text/plain') {
+                    item.getAsString(function(text) {
+                        document.execCommand('insertText', false, text);
+                    });
+                }
+            }
+        });
+
         currentSOP = JSON.parse(localStorage.getItem('currentSOP'));
         if (currentSOP) {
             document.title = `SOP: ${currentSOP.title}`;
@@ -312,7 +352,8 @@
                 <span>Created: ${new Date(currentSOP.date).toLocaleString()}</span>
                 <span style="margin-left: 20px;">Author: ${currentSOP.author || 'Unknown'}</span>
             `;
-            document.getElementById('sopContent').innerHTML = currentSOP.content;
+            const contentDiv = document.getElementById('sopContent');
+            contentDiv.innerHTML = currentSOP.content;
             displayComments();
         } else {
             window.location.href = 'index.html';
