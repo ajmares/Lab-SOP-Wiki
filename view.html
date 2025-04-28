@@ -49,6 +49,13 @@
         .save-button:hover {
             background: #218838;
         }
+        .cancel-button {
+            background: #dc3545;
+            display: none;
+        }
+        .cancel-button:hover {
+            background: #c82333;
+        }
         .editable {
             border: 1px solid #ddd;
             padding: 10px;
@@ -74,7 +81,6 @@
         .content img {
             max-width: 100%;
             height: auto;
-            cursor: default;
             display: block;
             margin: 10px 0;
         }
@@ -122,14 +128,22 @@
             font-size: 14px;
             margin-bottom: 5px;
         }
+        .button-container {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <a href="index.html" class="button">← Back to List</a>
-            <button class="button" id="editButton" onclick="toggleEdit()">Edit</button>
-            <button class="button save-button" id="saveButton" onclick="saveChanges()">Save</button>
+            <div class="button-container">
+                <button class="button" id="editButton" onclick="toggleEdit()">Edit</button>
+                <button class="button cancel-button" id="cancelButton" onclick="cancelEdit()">Cancel</button>
+                <button class="button save-button" id="saveButton" onclick="saveChanges()">Save</button>
+            </div>
         </div>
         <h1 id="sopTitle"></h1>
         <div class="metadata" id="sopMetadata"></div>
@@ -160,26 +174,36 @@
             isEditing = !isEditing;
             const editButton = document.getElementById('editButton');
             const saveButton = document.getElementById('saveButton');
+            const cancelButton = document.getElementById('cancelButton');
             const contentDiv = document.getElementById('sopContent');
             const titleElement = document.getElementById('sopTitle');
 
             if (isEditing) {
                 editButton.style.display = 'none';
                 saveButton.style.display = 'block';
+                cancelButton.style.display = 'block';
                 contentDiv.contentEditable = true;
                 titleElement.contentEditable = true;
                 contentDiv.classList.add('editable');
                 titleElement.classList.add('editable');
-                makeImagesEditable(true);
             } else {
                 editButton.style.display = 'block';
                 saveButton.style.display = 'none';
+                cancelButton.style.display = 'none';
                 contentDiv.contentEditable = false;
                 titleElement.contentEditable = false;
                 contentDiv.classList.remove('editable');
                 titleElement.classList.remove('editable');
-                makeImagesEditable(false);
             }
+        }
+
+        function cancelEdit() {
+            // Restore original content
+            document.getElementById('sopTitle').textContent = currentSOP.title;
+            document.getElementById('sopContent').innerHTML = currentSOP.content;
+            
+            // Switch back to view mode
+            toggleEdit();
         }
 
         function saveChanges() {
@@ -254,69 +278,6 @@
             `).join('');
         }
 
-        function makeImagesEditable(editable) {
-            const images = document.getElementById('sopContent').getElementsByTagName('img');
-            for (const img of images) {
-                if (editable) {
-                    makeImageDraggable(img);
-                } else {
-                    // Remove draggable functionality
-                    img.style.cursor = 'default';
-                    img.onmousedown = null;
-                    img.onmousemove = null;
-                    img.onmouseup = null;
-                }
-            }
-        }
-
-        function makeImageDraggable(img) {
-            let isDragging = false;
-            let currentX;
-            let currentY;
-            let initialX;
-            let initialY;
-            let xOffset = 0;
-            let yOffset = 0;
-
-            img.style.cursor = 'move';
-            img.addEventListener('mousedown', dragStart);
-            img.addEventListener('mousemove', drag);
-            img.addEventListener('mouseup', dragEnd);
-
-            function dragStart(e) {
-                if (!isEditing) return;
-                initialX = e.clientX - xOffset;
-                initialY = e.clientY - yOffset;
-
-                if (e.target === img) {
-                    isDragging = true;
-                }
-            }
-
-            function drag(e) {
-                if (isDragging) {
-                    e.preventDefault();
-                    currentX = e.clientX - initialX;
-                    currentY = e.clientY - initialY;
-
-                    xOffset = currentX;
-                    yOffset = currentY;
-
-                    setTranslate(currentX, currentY, img);
-                }
-            }
-
-            function setTranslate(xPos, yPos, el) {
-                el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
-            }
-
-            function dragEnd(e) {
-                initialX = currentX;
-                initialY = currentY;
-                isDragging = false;
-            }
-        }
-
         // Handle image paste in edit mode
         document.getElementById('sopContent').addEventListener('paste', function(e) {
             if (!isEditing) return;
@@ -333,7 +294,6 @@
                         img.src = event.target.result;
                         img.style.maxWidth = '100%';
                         e.target.appendChild(img);
-                        makeImageDraggable(img);
                     };
                     reader.readAsDataURL(blob);
                 } else if (item.type === 'text/plain') {
