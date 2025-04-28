@@ -79,6 +79,7 @@
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
+            align-items: center;
         }
         .comment-input {
             flex-grow: 1;
@@ -86,6 +87,13 @@
             border: 2px solid #ddd;
             border-radius: 8px;
             font-size: 16px;
+        }
+        .author-input {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            width: 200px;
         }
         .comments-list {
             margin-top: 20px;
@@ -117,6 +125,10 @@
         <div class="comments-section">
             <h2>Comments</h2>
             <div class="comment-input-container">
+                <input type="text" 
+                       class="author-input" 
+                       id="authorInput" 
+                       placeholder="Your name...">
                 <input type="text" 
                        class="comment-input" 
                        id="commentInput" 
@@ -176,7 +188,12 @@
 
         function addComment() {
             const commentText = document.getElementById('commentInput').value.trim();
-            if (!commentText) return;
+            const author = document.getElementById('authorInput').value.trim();
+            
+            if (!commentText || !author) {
+                alert('Please enter both your name and a comment');
+                return;
+            }
 
             // Get existing comments or initialize empty array
             currentSOP.comments = currentSOP.comments || [];
@@ -185,7 +202,7 @@
             currentSOP.comments.push({
                 text: commentText,
                 date: new Date().toISOString(),
-                author: currentSOP.author || 'Unknown'
+                author: author
             });
 
             // Update in localStorage
@@ -199,6 +216,7 @@
 
             // Clear input and refresh comments
             document.getElementById('commentInput').value = '';
+            document.getElementById('authorInput').value = '';
             displayComments();
         }
 
