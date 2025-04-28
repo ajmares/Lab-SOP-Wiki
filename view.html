@@ -63,11 +63,43 @@
             white-space: pre-wrap;
             line-height: 1.6;
             color: #444;
+            margin-bottom: 40px;
         }
         .metadata {
             color: #666;
             font-size: 14px;
             margin-bottom: 20px;
+        }
+        .comments-section {
+            margin-top: 40px;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        .comment-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .comment-input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .comments-list {
+            margin-top: 20px;
+        }
+        .comment {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .comment-metadata {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 5px;
         }
     </style>
 </head>
@@ -81,6 +113,18 @@
         <h1 id="sopTitle"></h1>
         <div class="metadata" id="sopMetadata"></div>
         <div class="content" id="sopContent"></div>
+        
+        <div class="comments-section">
+            <h2>Comments</h2>
+            <div class="comment-input-container">
+                <input type="text" 
+                       class="comment-input" 
+                       id="commentInput" 
+                       placeholder="Add a comment...">
+                <button class="button" onclick="addComment()">Add Comment</button>
+            </div>
+            <div class="comments-list" id="commentsList"></div>
+        </div>
     </div>
 
     <script>
@@ -130,6 +174,53 @@
             toggleEdit();
         }
 
+        function addComment() {
+            const commentText = document.getElementById('commentInput').value.trim();
+            if (!commentText) return;
+
+            // Get existing comments or initialize empty array
+            currentSOP.comments = currentSOP.comments || [];
+            
+            // Add new comment
+            currentSOP.comments.push({
+                text: commentText,
+                date: new Date().toISOString(),
+                author: currentSOP.author || 'Unknown'
+            });
+
+            // Update in localStorage
+            let sops = JSON.parse(localStorage.getItem('sops') || '[]');
+            const index = sops.findIndex(sop => sop.date === currentSOP.date);
+            if (index !== -1) {
+                sops[index] = currentSOP;
+            }
+            localStorage.setItem('sops', JSON.stringify(sops));
+            localStorage.setItem('currentSOP', JSON.stringify(currentSOP));
+
+            // Clear input and refresh comments
+            document.getElementById('commentInput').value = '';
+            displayComments();
+        }
+
+        function displayComments() {
+            const commentsDiv = document.getElementById('commentsList');
+            const comments = currentSOP.comments || [];
+
+            if (comments.length === 0) {
+                commentsDiv.innerHTML = '<p style="color: #666;">No comments yet</p>';
+                return;
+            }
+
+            commentsDiv.innerHTML = comments.map(comment => `
+                <div class="comment">
+                    <div class="comment-metadata">
+                        ${comment.author} - ${new Date(comment.date).toLocaleString()}
+                    </div>
+                    ${comment.text}
+                </div>
+            `).join('');
+        }
+
         currentSOP = JSON.parse(localStorage.getItem('currentSOP'));
         if (currentSOP) {
             document.title = `SOP: ${currentSOP.title}`;
@@ -139,6 +230,7 @@
                 <span style="margin-left: 20px;">Author: ${currentSOP.author || 'Unknown'}</span>
             `;
             document.getElementById('sopContent').textContent = currentSOP.content;
+            displayComments();
         } else {
             window.location.href = 'index.html';
         }
