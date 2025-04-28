@@ -157,6 +157,7 @@
                 titleElement.contentEditable = true;
                 contentDiv.classList.add('editable');
                 titleElement.classList.add('editable');
+                makeImagesEditable(true);
             } else {
                 editButton.style.display = 'block';
                 saveButton.style.display = 'none';
@@ -164,6 +165,7 @@
                 titleElement.contentEditable = false;
                 contentDiv.classList.remove('editable');
                 titleElement.classList.remove('editable');
+                makeImagesEditable(false);
             }
         }
 
@@ -239,6 +241,69 @@
             `).join('');
         }
 
+        function makeImagesEditable(editable) {
+            const images = document.getElementById('sopContent').getElementsByTagName('img');
+            for (const img of images) {
+                if (editable) {
+                    makeImageDraggable(img);
+                } else {
+                    // Remove draggable functionality
+                    img.style.cursor = 'default';
+                    img.onmousedown = null;
+                    img.onmousemove = null;
+                    img.onmouseup = null;
+                }
+            }
+        }
+
+        function makeImageDraggable(img) {
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+
+            img.style.cursor = 'move';
+            img.addEventListener('mousedown', dragStart);
+            img.addEventListener('mousemove', drag);
+            img.addEventListener('mouseup', dragEnd);
+
+            function dragStart(e) {
+                if (!isEditing) return;
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+
+                if (e.target === img) {
+                    isDragging = true;
+                }
+            }
+
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    setTranslate(currentX, currentY, img);
+                }
+            }
+
+            function setTranslate(xPos, yPos, el) {
+                el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+            }
+
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+            }
+        }
+
         currentSOP = JSON.parse(localStorage.getItem('currentSOP'));
         if (currentSOP) {
             document.title = `SOP: ${currentSOP.title}`;
@@ -247,7 +312,7 @@
                 <span>Created: ${new Date(currentSOP.date).toLocaleString()}</span>
                 <span style="margin-left: 20px;">Author: ${currentSOP.author || 'Unknown'}</span>
             `;
-            document.getElementById('sopContent').textContent = currentSOP.content;
+            document.getElementById('sopContent').innerHTML = currentSOP.content;
             displayComments();
         } else {
             window.location.href = 'index.html';

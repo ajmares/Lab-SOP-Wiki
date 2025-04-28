@@ -35,9 +35,18 @@
             font-size: 16px;
             border: 2px solid #ddd;
             border-radius: 8px;
-            resize: none;
             box-sizing: border-box;
             min-height: 500px;
+            background: white;
+            overflow-y: auto;
+            outline: none;
+        }
+        .content-area img {
+            max-width: 100%;
+            height: auto;
+            cursor: move;
+            display: block;
+            margin: 10px 0;
         }
         .button-container {
             display: flex;
@@ -92,10 +101,10 @@
                    required>
         </div>
         
-        <textarea class="content-area" 
-                  id="content" 
-                  placeholder="Enter SOP content here..."
-                  required></textarea>
+        <div class="content-area" 
+             id="content" 
+             contenteditable="true"
+             placeholder="Enter SOP content here..."></div>
         
         <div class="button-container">
             <button class="button cancel-button" onclick="window.location.href='index.html'">Cancel</button>
@@ -104,9 +113,97 @@
     </div>
 
     <script>
+        // Add placeholder behavior for contenteditable div
+        const contentDiv = document.getElementById('content');
+        
+        contentDiv.addEventListener('focus', function() {
+            if (this.textContent.trim() === '') {
+                this.textContent = '';
+            }
+        });
+
+        contentDiv.addEventListener('blur', function() {
+            if (this.textContent.trim() === '') {
+                this.textContent = '';
+            }
+        });
+
+        // Handle image paste
+        contentDiv.addEventListener('paste', function(e) {
+            e.preventDefault();
+            
+            // Handle image paste
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            for (const item of items) {
+                if (item.type.indexOf('image') === 0) {
+                    const blob = item.getAsFile();
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const img = document.createElement('img');
+                        img.src = event.target.result;
+                        img.style.maxWidth = '100%';
+                        contentDiv.appendChild(img);
+                        makeImageDraggable(img);
+                    };
+                    reader.readAsDataURL(blob);
+                } else if (item.type === 'text/plain') {
+                    item.getAsString(function(text) {
+                        document.execCommand('insertText', false, text);
+                    });
+                }
+            }
+        });
+
+        // Make images draggable
+        function makeImageDraggable(img) {
+            let isDragging = false;
+            let currentX;
+            let currentY;
+            let initialX;
+            let initialY;
+            let xOffset = 0;
+            let yOffset = 0;
+
+            img.addEventListener('mousedown', dragStart);
+            img.addEventListener('mousemove', drag);
+            img.addEventListener('mouseup', dragEnd);
+
+            function dragStart(e) {
+                initialX = e.clientX - xOffset;
+                initialY = e.clientY - yOffset;
+
+                if (e.target === img) {
+                    isDragging = true;
+                }
+            }
+
+            function drag(e) {
+                if (isDragging) {
+                    e.preventDefault();
+                    currentX = e.clientX - initialX;
+                    currentY = e.clientY - initialY;
+
+                    xOffset = currentX;
+                    yOffset = currentY;
+
+                    setTranslate(currentX, currentY, img);
+                }
+            }
+
+            function setTranslate(xPos, yPos, el) {
+                el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+            }
+
+            function dragEnd(e) {
+                initialX = currentX;
+                initialY = currentY;
+                isDragging = false;
+            }
+        }
+
         function saveSOP() {
             const title = document.getElementById('title').value.trim();
-            const content = document.getElementById('content').value.trim();
+            const content = document.getElementById('content').innerHTML;
             const author = document.getElementById('author').value.trim();
             
             if (!title || !content || !author) {
