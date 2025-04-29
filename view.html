@@ -147,6 +147,36 @@
         .comment-action-btn:hover {
             color: #333;
         }
+        .comment-edit-actions {
+            display: none;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .comment-edit-actions.active {
+            display: flex;
+        }
+        .comment-edit-btn {
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .comment-save-btn {
+            background: #28a745;
+            color: white;
+        }
+        .comment-save-btn:hover {
+            background: #218838;
+        }
+        .comment-cancel-btn {
+            background: #dc3545;
+            color: white;
+        }
+        .comment-cancel-btn:hover {
+            background: #c82333;
+        }
         .comment-content {
             outline: none;
         }
@@ -315,34 +345,57 @@
                         </div>
                     </div>
                     <div class="comment-content" id="comment-${index}">${comment.text}</div>
+                    <div class="comment-edit-actions" id="comment-actions-${index}">
+                        <button class="comment-edit-btn comment-save-btn" onclick="saveComment(${index})">Save</button>
+                        <button class="comment-edit-btn comment-cancel-btn" onclick="cancelComment(${index})">Cancel</button>
+                    </div>
                 </div>
             `).join('');
         }
 
         function editComment(index) {
             const commentDiv = document.getElementById(`comment-${index}`);
+            const actionsDiv = document.getElementById(`comment-actions-${index}`);
+            
+            // Store original content for cancel functionality
+            commentDiv.dataset.originalContent = commentDiv.innerText;
+            
+            // Enter edit mode
+            commentDiv.contentEditable = true;
+            commentDiv.focus();
+            actionsDiv.classList.add('active');
+        }
+
+        function saveComment(index) {
+            const commentDiv = document.getElementById(`comment-${index}`);
+            const actionsDiv = document.getElementById(`comment-actions-${index}`);
             const comment = currentSOP.comments[index];
             
-            if (commentDiv.getAttribute('contenteditable') === 'true') {
-                // Save changes
-                comment.text = commentDiv.innerText;
-                commentDiv.contentEditable = false;
-                
-                // Update in localStorage
-                let sops = JSON.parse(localStorage.getItem('sops') || '[]');
-                const sopIndex = sops.findIndex(sop => sop.date === currentSOP.date);
-                if (sopIndex !== -1) {
-                    sops[sopIndex] = currentSOP;
-                }
-                localStorage.setItem('sops', JSON.stringify(sops));
-                localStorage.setItem('currentSOP', JSON.stringify(currentSOP));
-                
-                displayComments();
-            } else {
-                // Enter edit mode
-                commentDiv.contentEditable = true;
-                commentDiv.focus();
+            // Save changes
+            comment.text = commentDiv.innerText;
+            commentDiv.contentEditable = false;
+            actionsDiv.classList.remove('active');
+            
+            // Update in localStorage
+            let sops = JSON.parse(localStorage.getItem('sops') || '[]');
+            const sopIndex = sops.findIndex(sop => sop.date === currentSOP.date);
+            if (sopIndex !== -1) {
+                sops[sopIndex] = currentSOP;
             }
+            localStorage.setItem('sops', JSON.stringify(sops));
+            localStorage.setItem('currentSOP', JSON.stringify(currentSOP));
+            
+            displayComments();
+        }
+
+        function cancelComment(index) {
+            const commentDiv = document.getElementById(`comment-${index}`);
+            const actionsDiv = document.getElementById(`comment-actions-${index}`);
+            
+            // Restore original content
+            commentDiv.innerText = commentDiv.dataset.originalContent;
+            commentDiv.contentEditable = false;
+            actionsDiv.classList.remove('active');
         }
 
         function deleteComment(index) {
